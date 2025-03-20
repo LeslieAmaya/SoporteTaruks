@@ -80,12 +80,24 @@ const ModuleForm = () => {
 
     const handleDelete = async (id) => {
         try {
+            // Confirmar la eliminación
+            const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar este módulo?");
+            if (!confirmDelete) return;
+    
+            // Intentar eliminar el módulo
             await axios.delete(`http://localhost:5272/api/Modulo/${id}`);
-            fetchModulos(); // Refrescar la lista después de eliminar
+    
+            // Refrescar la lista después de eliminar
+            fetchModulos();
+    
+            alert("Módulo eliminado correctamente.");
         } catch (error) {
             console.error("Error al eliminar el módulo", error);
+            alert("Hubo un error al eliminar el módulo. Intenta nuevamente.");
         }
     };
+    
+    
 
     return (
         <div>

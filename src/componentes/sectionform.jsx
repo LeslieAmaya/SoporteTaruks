@@ -8,16 +8,19 @@ const SectionForm = () => {
     const [secciones, setSecciones] = useState([]);
     const [sistemas, setSistemas] = useState([]);
     const [modulos, setModulos] = useState([]);
+    const [filteredSecciones, setFilteredSecciones] = useState([]);
+    const [filteredModulos, setFilteredModulos] = useState([]);
     const [formData, setFormData] = useState({
-        sistema: "",
-        modulo: "",
+        sistema: "",           // Inicializa con un string vacío
+        modulo: "",            // Inicializa con un string vacío
+        seccionExistente: "",
         nombreSeccion: "",
         descripcionSeccion: "",
+        seccion: ""            // Asegúrate de que seccion tenga un valor
     });
     const [editingId, setEditingId] = useState(null);
-    const [error, setError] = useState("");  // Para manejar errores
+    const [error, setError] = useState("");
 
-    // Fetch sistemas, modulos y secciones
     useEffect(() => {
         fetchSistemas();
         fetchModulos();
@@ -51,36 +54,50 @@ const SectionForm = () => {
         }
     };
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+    const handleEdit = (seccion) => {
+        setEditingId(seccion.idSe);
+        setFormData({
+            sistema: seccion.idSis,
+            modulo: seccion.idMod,
+            seccionExistente: "",
+            nombreSeccion: seccion.nombreSe,
+            descripcionSeccion: seccion.descripcionSe,
+            seccion: ""    // Resetear el valor de seccion
+        });
+    };
+
+    const handleDelete = async (id) => {
+        try {
+            if (window.confirm("¿Estás seguro de que deseas eliminar esta sección?")) {
+                await axios.delete(`http://localhost:5272/api/Seccion/${id}`);
+                fetchSecciones(); // Actualiza la lista después de eliminar
+            }
+        } catch (error) {
+            console.error("Error al eliminar la sección", error);
+            setError("Hubo un error al eliminar la sección. Intenta nuevamente.");
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const { sistema, modulo, nombreSeccion, descripcionSeccion } = formData;
+            const { sistema, modulo, seccionExistente, nombreSeccion, descripcionSeccion } = formData;
+            const data = {
+                idSis: sistema,
+                idMod: modulo,
+                nombreSe: seccionExistente ? secciones.find(sec => sec.idSe === seccionExistente)?.nombreSe : nombreSeccion,
+                descripcionSe: seccionExistente ? secciones.find(sec => sec.idSe === seccionExistente)?.descripcionSe : descripcionSeccion,
+            };
+
             if (editingId) {
-                await axios.put(`http://localhost:5272/api/Seccion/${editingId}`, {
-                    idSis: sistema,
-                    idMod: modulo,
-                    nombreSe: nombreSeccion,
-                    descripcionSe: descripcionSeccion,
-                });
+                await axios.put(`http://localhost:5272/api/Seccion/${editingId}`, data);
             } else {
-                await axios.post("http://localhost:5272/api/Seccion", {
-                    idSis: sistema,
-                    idMod: modulo,
-                    nombreSe: nombreSeccion,
-                    descripcionSe: descripcionSeccion,
-                });
+                await axios.post("http://localhost:5272/api/Seccion", data);
             }
-            // Reset form after submit
-            setFormData({
-                sistema: "",
-                modulo: "",
-                nombreSeccion: "",
-                descripcionSeccion: "",
-            });
+
+            setFormData({ sistema: "", modulo: "", seccionExistente: "", nombreSeccion: "", descripcionSeccion: "", seccion: "" });
             setEditingId(null);
             fetchSecciones();
         } catch (error) {
@@ -89,25 +106,6 @@ const SectionForm = () => {
         }
     };
 
-    const handleEdit = (seccion) => {
-        setEditingId(seccion.idSe);
-        setFormData({
-            sistema: seccion.idSis,
-            modulo: seccion.idMod,
-            nombreSeccion: seccion.nombreSe,
-            descripcionSeccion: seccion.descripcionSe,
-        });
-    };
-
-    const handleDelete = async (id) => {
-        try {
-            await axios.delete(`http://localhost:5272/api/Seccion/${id}`);
-            fetchSecciones();
-        } catch (error) {
-            console.error("Error al eliminar la sección", error);
-            setError("Hubo un error al eliminar la sección. Intenta nuevamente.");
-        }
-    };
 
     return (
         <div>
@@ -166,7 +164,7 @@ const SectionForm = () => {
 
             <div className="page-container">
 
-                <h1>CRUD de Secciones</h1>
+            <h1>CRUD de Secciones</h1>
                 {error && <p style={{ color: "red" }}>{error}</p>} {/* Mostrar errores */}
 
                 <form onSubmit={handleSubmit}>
@@ -174,12 +172,11 @@ const SectionForm = () => {
                         <Grid item xs={12} md={6}>
                             <TextField
                                 select
-                                label="Seleccionar Sistema"
+                                label="Sistema"
                                 name="sistema"
                                 fullWidth
                                 value={formData.sistema}
                                 onChange={handleChange}
-                                required
                             >
                                 {sistemas.map((sistema) => (
                                     <MenuItem key={sistema.idSis} value={sistema.idSis}>
@@ -191,14 +188,13 @@ const SectionForm = () => {
                         <Grid item xs={12} md={6}>
                             <TextField
                                 select
-                                label="Seleccionar Módulo"
+                                label="Módulo"
                                 name="modulo"
                                 fullWidth
                                 value={formData.modulo}
                                 onChange={handleChange}
-                                required
                             >
-                                {modulos.map((modulo) => (
+                                {modulos.filter(modulo => modulo.idSis === formData.sistema).map((modulo) => (
                                     <MenuItem key={modulo.idMod} value={modulo.idMod}>
                                         {modulo.nombreM}
                                     </MenuItem>
@@ -207,35 +203,49 @@ const SectionForm = () => {
                         </Grid>
                         <Grid item xs={12} md={6}>
                             <TextField
-                                label="Nombre de la Sección"
-                                name="nombreSeccion"
+                                select
+                                label="Sección"
+                                name="seccion"
                                 fullWidth
-                                value={formData.nombreSeccion}
+                                value={formData.seccion}
                                 onChange={handleChange}
-                                required
-                            />
+                            >
+                                {secciones.filter(seccion => seccion.idMod === formData.modulo).map((seccion) => (
+                                    <MenuItem key={seccion.idSe} value={seccion.idSe}>
+                                        {seccion.nombreSe}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                         </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                label="Descripción de la Sección"
-                                name="descripcionSeccion"
-                                fullWidth
-                                value={formData.descripcionSeccion}
-                                onChange={handleChange}
-                                required
-                            />
-                        </Grid>
+                        {!formData.seccionExistente && (
+                            <>
+                                <Grid item xs={12} md={6}>
+                                    <TextField
+                                        label="Nombre de la Sección"
+                                        name="nombreSeccion"
+                                        fullWidth
+                                        value={formData.nombreSeccion}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <TextField
+                                        label="Descripción de la Sección"
+                                        name="descripcionSeccion"
+                                        fullWidth
+                                        value={formData.descripcionSeccion}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </Grid>
+                            </>
+                        )}
                     </Grid>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        className="mt-3"
-                    >
+                    <Button type="submit" variant="contained" color="primary" className="mt-3">
                         {editingId ? "Actualizar" : "Registrar"}
                     </Button>
                 </form>
-
                 <h2 className="text-center mt-4">Lista de Secciones</h2>
                 <div className="table-container">
                     <table className="table">
@@ -264,6 +274,7 @@ const SectionForm = () => {
                                         >
                                             Editar
                                         </Button>
+
                                         <Button
                                             variant="contained"
                                             color="error"
