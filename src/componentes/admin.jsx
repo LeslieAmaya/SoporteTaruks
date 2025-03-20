@@ -5,8 +5,6 @@ import { stateToHTML } from 'draft-js-export-html';
 import { Stepper, Step, StepLabel, Button, TextField, MenuItem, Box } from "@mui/material";
 import axios from "axios"; // Asegúrate de usar axios para la comunicación con tu API
 
-
-
 const steps = ["Selección de Sistema, Módulo y Sección", "Requerimientos", "Procedimiento", "Revisión"];
 
 const WizardForm = () => {
@@ -88,9 +86,6 @@ const WizardForm = () => {
         }
     };
     
-    
-
-    // Función para actualizar el estado del editor
     const handleEditorChange = (newEditorState) => {
         setEditorState(newEditorState);
         
@@ -118,7 +113,6 @@ const WizardForm = () => {
         const newState = RichUtils.toggleInlineStyle(editorState, style);
         handleEditorChange(newState);
     };
-    
 
     return (
         <div>
@@ -166,7 +160,6 @@ const WizardForm = () => {
                     <Link to="/" className="nav-item ml-auto login-link-pages">Volver</Link>
                 </nav>
             </div>
-
             <div className="container mt-4">
                 <h1 className="m-4">Administración de Guías</h1>
                 <Stepper activeStep={activeStep} alternativeLabel>
@@ -205,7 +198,7 @@ const WizardForm = () => {
                                     value={formData.modulo}
                                     onChange={handleChange}
                                 >
-                                    {modulos.map((modulo) => (
+                                    {modulos.filter(modulo => modulo.idSis === formData.sistema).map((modulo) => (
                                         <MenuItem key={modulo.idMod} value={modulo.idMod}>
                                             {modulo.nombreM}
                                         </MenuItem>
@@ -221,7 +214,7 @@ const WizardForm = () => {
                                     value={formData.seccion}
                                     onChange={handleChange}
                                 >
-                                    {secciones.map((seccion) => (
+                                    {secciones.filter(seccion => seccion.idMod === formData.modulo).map((seccion) => (
                                         <MenuItem key={seccion.idSe} value={seccion.idSe}>
                                             {seccion.nombreSe}
                                         </MenuItem>
@@ -271,7 +264,6 @@ const WizardForm = () => {
                                     placeholder="Escribe el procedimiento..."
                                 />
                             </div>
-
                         </Box>
                     )}
 
@@ -285,10 +277,9 @@ const WizardForm = () => {
                             <p><b>Descripción:</b> {formData.descripcion}</p>
                             <p><b>Requerimientos:</b> {formData.requerimientos.join(", ")}</p>
                             <p><b>Procedimiento:</b></p>
-                            <div dangerouslySetInnerHTML={{ __html: formData.procedimiento }}/>
+                            <div dangerouslySetInnerHTML={{ __html: formData.procedimiento }} />
                         </div>
                     )}
-
 
                     <Box mt={3}>
                         {activeStep > 0 && <Button onClick={handleBack}>Atrás</Button>}
