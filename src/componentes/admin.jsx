@@ -55,7 +55,7 @@ const WizardForm = () => {
             // Obtener el contenido del editor
             const contentState = editorState.getCurrentContent();
             const htmlContent = stateToHTML(contentState);
-    
+
             const guiaData = {
                 IdSis: formData.sistema,
                 IdMod: formData.modulo,
@@ -65,11 +65,11 @@ const WizardForm = () => {
                 Requerimientos: formData.requerimientos.join(", "),
                 Procedimiento: htmlContent
             };
-    
+
             const result = await axios.post("http://localhost:5272/api/Guia", guiaData);
             alert('Guía creada con éxito');
             console.log(result);
-    
+
             setFormData({
                 sistema: "",
                 modulo: "",
@@ -85,20 +85,20 @@ const WizardForm = () => {
             console.error(error);
         }
     };
-    
+
     const handleEditorChange = (newEditorState) => {
         setEditorState(newEditorState);
-        
+
         // Convertir el contenido del editor a HTML
         const htmlContent = stateToHTML(newEditorState.getCurrentContent());
-    
+
         // Guardar el HTML en el estado
         setFormData((prevData) => ({
             ...prevData,
             procedimiento: htmlContent
         }));
     };
-    
+
     const handleKeyCommand = (command) => {
         const newState = RichUtils.handleKeyCommand(editorState, command);
         if (newState) {
@@ -107,7 +107,7 @@ const WizardForm = () => {
         }
         return 'not-handled';
     };
-    
+
     const toggleInlineStyle = (style, e) => {
         e.preventDefault();
         const newState = RichUtils.toggleInlineStyle(editorState, style);
@@ -146,11 +146,14 @@ const WizardForm = () => {
             <div className="container-fluid p-0">
                 <nav className="navbar navbar-expand-lg bg-light navbar-light py-3 px-lg-5">
                     <h1 className="m-0 display-5 text-uppercase">
-                        <img
-                            src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png"
-                            className="icon"
-                            alt="Logo"
-                        />
+                        <Link to="/">
+                            <img
+                                src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png"
+                                className="icon"
+                                alt="Taruks"
+                            />
+                        </Link>
+                        
                     </h1>
                     <Link to="/sistemform" className="nav-item ms-2 login-link-pages">Sistemas</Link>
                     <Link to="/moduleform" className="nav-item ms-2 login-link-pages">Módulos</Link>
@@ -270,9 +273,9 @@ const WizardForm = () => {
                     {activeStep === 3 && (
                         <div>
                             <h3>Revisión</h3>
-                            <p><b>Sistema:</b> {formData.sistema}</p>
-                            <p><b>Módulo:</b> {formData.modulo}</p>
-                            <p><b>Sección:</b> {formData.seccion}</p>
+                            <p><b>Sistema:</b> {sistemas.find(s => s.idSis === formData.sistema)?.nombreSis || "No seleccionado"}</p>
+                            <p><b>Módulo:</b> {modulos.find(m => m.idMod === formData.modulo)?.nombreM || "No seleccionado"}</p>
+                            <p><b>Sección:</b> {secciones.find(s => s.idSe === formData.seccion)?.nombreSe || "No seleccionado"}</p>
                             <p><b>Título:</b> {formData.titulo}</p>
                             <p><b>Descripción:</b> {formData.descripcion}</p>
                             <p><b>Requerimientos:</b> {formData.requerimientos.join(", ")}</p>
@@ -280,6 +283,7 @@ const WizardForm = () => {
                             <div dangerouslySetInnerHTML={{ __html: formData.procedimiento }} />
                         </div>
                     )}
+
 
                     <Box mt={3}>
                         {activeStep > 0 && <Button onClick={handleBack}>Atrás</Button>}

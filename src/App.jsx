@@ -1,24 +1,55 @@
 import { useState, useEffect } from 'react'; // Importar useEffect
 import { Link } from 'react-router-dom';
-import './App.css';
-import global from 'global';
-window.global = global;
+// Solución para "global is not defined"
+window.global = window;
 
-{/* import axios from "axios"; */}
+import './App.css';
+
+import axios from "axios";
 
 function App() {
-  const [productos, setProductos] = useState([]); // Agregar estado para productos
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [faqs, setFaqs] = useState([]);
+  const [sistemas, setSistemas] = useState([]);
+
+  const fetchSistemas = async () => {
+    try {
+      const response = await axios.get("http://localhost:5272/api/Sistema"); // Verifica qué datos estás recibiendo
+      setSistemas(response.data);
+
+    } catch (error) {
+      console.error("Error al obtener la lista de sistemas", error);
+    }
+  };
 
   useEffect(() => {
-    // Cambia esta URL por el endpoint de tu API
-    {/* axios.get("https://localhost:7274/api/Modulo")
-        .then((response) => {
-            setProductos(response.data); // Establece los productos cuando la respuesta llega
-        })
-        .catch((error) => {
-            console.error("Error al obtener los productos:", error);
-        });*/}
-  }, []);
+    axios.get("http://localhost:5272/api/Guia")
+      .then(response => {
+        setFaqs(response.data);
+      })
+      .catch(error => console.error("Error al cargar las FAQS", error));
+    if (query.trim() === "") {
+      setResults([]); // Si el input está vacío, limpia resultados
+      return;
+    }
+
+    const filteredFaqs = faqs.filter(faq =>
+      faq.titulo.toLowerCase().includes(query.toLowerCase()) ||
+      faq.descripcion.toLowerCase().includes(query.toLowerCase()) ||
+      faq.requerimientos.toLowerCase().includes(query.toLowerCase()) ||
+      faq.procedimiento.toLowerCase().includes(query.toLowerCase())
+    );
+    setResults(filteredFaqs);
+
+    fetchSistemas();
+  }, [query, faqs]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();  // PREVIENE que el formulario recargue la página
+  };
+
+
 
   return (
     <div>
@@ -58,7 +89,7 @@ function App() {
               <h1 className="m-0 display-5 text-uppercase texttaruks">
                 <img
                   src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png"
-                  className="icon"
+                  className="iconT"
                   alt="Logo Taruks"
                 />
               </h1>
@@ -114,15 +145,20 @@ function App() {
             </p>
           </div>
 
-          {/* Formulario */}
+          {/* Cajita de pregunta */}
           <div className="input-group mt-4" style={{ width: "300px" }}>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="¿Cómo podemos ayudar?"
-              aria-label="Buscar duda"
-            />
-            <div className="input-group-append">
+            <form className="p-1 mb-1 d-flex" onSubmit={handleSearch}>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="¿Cómo podemos ayudar?"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)} // Asigna el valor al estado
+                style={{
+                  borderTopRightRadius: "0",
+                  borderBottomRightRadius: "0"
+                }}
+              />
               <button
                 className="btn btn-danger"
                 type="submit"
@@ -134,24 +170,56 @@ function App() {
               >
                 <i className="fas fa-arrow-right"></i>
               </button>
-            </div>
+            </form>
+
           </div>
         </div>
+        <div className="container mt-4">
+          {results.length > 0 ? (
+            <ul className="list-group">
+              <div className="row">
+                {results.map((faq, index) => {
+                  const sistemaRelacionado = sistemas.find(sis => sis.idSis === faq.idSis);
+                  const systemPage = sistemaRelacionado ? sistemaRelacionado.nombreSis.toLowerCase(): '';
 
+                  return (
+                    <div key={index} className="col-md-6 mb-4">
+                      <div className="card shadow-sm h-100">
+                        <div className="card-body">
+                          {/* Redirige a la página correspondiente del sistema */}
+                          <Link to={`/${systemPage}`} className="card-title text-primary">
+                            {faq.titulo}
+                          </Link>
+                          <h6 className="card-subtitle mb-2 text-muted">
+                            Sistema: {sistemaRelacionado?.nombreSis || 'No definido'}
+                          </h6>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+              </div>
+
+            </ul>
+          ) : (
+            query && <p>No se encontraron resultados para "{query}".</p>
+          )}
+        </div>
         {/* Servicios Taruks */}
         <div className="container my-5">
           <h2 className="text-center custom-margin text-black">Nuestros Servicios</h2>
           <div className="row text-center justify-content-center">
             <div className="row text-center justify-content-center">
               <div className="col-4 col-md-2 text-dark d-flex flex-column align-items-center">
-                <Link to="/si-admin">
+                <Link to="/siadmin">
                   <img
                     src="https://i.postimg.cc/1tPzH6jf/siadmin.png"
                     alt="SiAdmin"
-                    className="icon"
+                    className="iconS"
                   />
                 </Link>
-                <p>SiAdmin</p>
+                {/* <p>SiAdmin</p> */}
               </div>
 
               <div className="col-4 col-md-2 text-dark d-flex flex-column align-items-center">
@@ -159,26 +227,28 @@ function App() {
                   <img
                     src="https://i.postimg.cc/rwwFZxcH/ekkipo.png"
                     alt="Nómina Ekkipo"
-                    className="iconA"
+                    className="iconE"
+                    style={{ padding: 0, width: "180px" }}
                   />
                 </Link>
-                <p style={{ padding: 26 }}>Nómina Ekkipo</p>
+                {/* <p style={{ padding: 26 }}>Nómina Ekkipo</p> */}
               </div>
 
               <div className="col-4 col-md-2 text-dark d-flex flex-column align-items-center">
-                <Link to="/si-admin-web">
+                <Link to="/multiventas">
                   <img
-                    src="https://i.postimg.cc/1tPzH6jf/siadmin.png"
-                    alt="SiAdmin Web"
-                    className="icon"
+                    src="https://i.postimg.cc/fyJBMwjN/Multi-Ventas.png"
+                    alt="Multiventas"
+                    className="iconM"
+                    style={{ padding: 0, width: "200px" }}
                   />
                 </Link>
-                <p>SiAdmin Web</p>
+                {/* <p>SiAdmin Web</p> */}
               </div>
             </div>
           </div>
         </div>
-        {/* Servicios Taruks */}
+
       </div>
     </div>
   );

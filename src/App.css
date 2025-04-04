@@ -249,17 +249,30 @@ ul {
   background-color: #75b84e; 
   color: white; 
 }
-
-.icon {
+.iconT {
   width: 120px; 
   height: auto; 
-  margin-bottom: 8px; 
+  margin-bottom: 8px;
 }
-.iconA {
-  width: 140px;
+.iconS {
+  width: 120px; 
   height: auto; 
-  margin-bottom: 8px; 
-  margin-top: 50px;
+  margin-bottom: 8px;
+  margin-top: 15%; 
+}
+.iconE {
+  width: 120px; 
+  height: auto; 
+  margin-bottom: 8px;
+  margin-top: 25%; 
+  
+}
+.iconM {
+  width: 120px; 
+  height: auto; 
+  margin-bottom: 8px;
+  margin-top: 15%; 
+  margin-left: 25%;
 }
 .custom-margin {
   margin-bottom: 30px; 

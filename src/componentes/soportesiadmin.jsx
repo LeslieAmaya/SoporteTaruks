@@ -70,7 +70,7 @@ const SiAdmin = () => {
       console.error("Error al obtener las guías", error);
     }
   };
-  
+
 
   const handleGuiaClick = (guia) => {
     setSelectedGuia(guia); // Al hacer clic en la guía, almacenamos los detalles de la guía seleccionada
@@ -162,12 +162,16 @@ const SiAdmin = () => {
         {/* Mostrar detalles de la guía seleccionada */}
         {selectedGuia && (
           <div className="guia-details ml-4 mt-4">
-            <h3><strong> {selectedGuia.titulo}</strong> </h3>
+            <h3><strong>{selectedGuia.titulo}</strong></h3>
             <p><strong>Descripción:</strong> {selectedGuia.descripcion}</p>
             <p><strong>Requerimientos:</strong> {selectedGuia.requerimientos}</p>
-            <p><strong>Procedimiento:</strong> {selectedGuia.procedimiento}</p>
+            <div>
+              <strong>Procedimiento:</strong>
+              <div dangerouslySetInnerHTML={{ __html: selectedGuia.procedimiento }} />
+            </div>
           </div>
         )}
+
       </div>
     </div>
   );

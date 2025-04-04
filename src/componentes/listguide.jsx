@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { convertToRaw } from "draft-js";
-import { stateToHTML } from 'draft-js-export-html';
 import { Link } from "react-router-dom";
 import { TextField, MenuItem, Button, Menu } from "@mui/material";
 
@@ -137,7 +135,14 @@ const ListGuide = () => {
             <div className="container-fluid p-0">
                 <nav className="navbar navbar-expand-lg bg-light navbar-light py-3 px-lg-5">
                     <h1 className="m-0 display-5 text-uppercase">
-                        <img src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png" className="icon" alt="Logo" />
+                        <Link to="/">
+                            <img
+                                src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png"
+                                className="icon"
+
+                                alt="Logo"
+                            />
+                        </Link>
                     </h1>
                     <Link to="/sistemform" className="nav-item ms-2 login-link-pages">Sistemas</Link>
                     <Link to="/moduleform" className="nav-item ms-2 login-link-pages">Modulos</Link>

@@ -83,21 +83,21 @@ const ModuleForm = () => {
             // Confirmar la eliminación
             const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar este módulo?");
             if (!confirmDelete) return;
-    
+
             // Intentar eliminar el módulo
             await axios.delete(`http://localhost:5272/api/Modulo/${id}`);
-    
+
             // Refrescar la lista después de eliminar
             fetchModulos();
-    
+
             alert("Módulo eliminado correctamente.");
         } catch (error) {
             console.error("Error al eliminar el módulo", error);
             alert("Hubo un error al eliminar el módulo. Intenta nuevamente.");
         }
     };
-    
-    
+
+
 
     return (
         <div>
@@ -129,11 +129,14 @@ const ModuleForm = () => {
             <div className="container-fluid p-0">
                 <nav className="navbar navbar-expand-lg bg-light navbar-light py-3 px-lg-5">
                     <h1 className="m-0 display-5 text-uppercase">
-                        <img
-                            src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png"
-                            className="icon"
-                            alt="Logo"
-                        />
+                        <Link to="/">
+                            <img
+                                src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png"
+                                className="icon"
+
+                                alt="Logo"
+                            />
+                        </Link>
                     </h1>
                     <Link to="/sistemform" className="nav-item ms-2 login-link-pages">
                         Sistemas

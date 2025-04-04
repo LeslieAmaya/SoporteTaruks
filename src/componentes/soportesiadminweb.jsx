@@ -25,7 +25,7 @@ const SiAdminWeb = () => {
       const response = await axios.get("http://localhost:5272/api/Sistema");
       console.log("Sistemas obtenidos:", response.data);
 
-      const siadminWebSistema = response.data.find((sistema) => sistema.nombreSis === "SiAdminWeb");
+      const siadminWebSistema = response.data.find((sistema) => sistema.nombreSis === "Multiventas");
       if (siadminWebSistema) {
         setIdSiAdminWeb(siadminWebSistema.idSis);
         console.log("ID de SiAdminWeb encontrado:", siadminWebSistema.idSis);
@@ -40,13 +40,11 @@ const SiAdminWeb = () => {
   const fetchModulos = async () => {
     try {
       const response = await axios.get("http://localhost:5272/api/Modulo");
-      console.log("Módulos obtenidos:", response.data);
 
       const modulosSiAdminWeb = response.data.filter(
         (modulo) => Number(modulo.idSis) === Number(idSiAdminWeb)
       );
 
-      console.log("Módulos filtrados para SiAdmin:", modulosSiAdminWeb);
       setModulos(modulosSiAdminWeb);
     } catch (error) {
       console.error("Error al obtener los módulos", error);
@@ -106,9 +104,9 @@ const SiAdminWeb = () => {
         <nav className="navbar navbar-expand-lg bg-light navbar-light py-3 px-lg-5">
           <h1 className="m-0 display-5 text-uppercase">
             <img
-              src="https://i.postimg.cc/N0G9CLzg/siadminn.png"
+              src="https://i.postimg.cc/fyJBMwjN/Multi-Ventas.png"
               className="icon"
-              style={{ padding: 0, width: "300px" }}
+              style={{ padding: 0, width: "200px" }}
               alt="Logo"
             />
           </h1>
@@ -162,11 +160,14 @@ const SiAdminWeb = () => {
         {/* Mostrar detalles de la guía seleccionada */}
         {selectedGuia && (
           <div className="guia-details ml-4 mt-4">
-            <h3><strong> {selectedGuia.titulo}</strong> </h3>
-            <p><strong>Descripción:</strong> {selectedGuia.descripcion}</p>
-            <p><strong>Requerimientos:</strong> {selectedGuia.requerimientos}</p>
-            <p><strong>Procedimiento:</strong> {selectedGuia.procedimiento}</p>
+          <h3><strong>{selectedGuia.titulo}</strong></h3>
+          <p><strong>Descripción:</strong> {selectedGuia.descripcion}</p>
+          <p><strong>Requerimientos:</strong> {selectedGuia.requerimientos}</p>
+          <div>
+            <strong>Procedimiento:</strong>
+            <div dangerouslySetInnerHTML={{ __html: selectedGuia.procedimiento }} />
           </div>
+        </div>
         )}
       </div>
     </div>
