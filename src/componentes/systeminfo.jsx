@@ -32,20 +32,18 @@ const SystemInfo = () => {
         const fetchGuiasDeTodos = async () => {
             const nuevasGuias = {};
             for (const modulo of modulos) {
-                try {
                     const response = await axios.get(`http://localhost:5272/api/Guia/${modulo.idMod}`);
                     nuevasGuias[modulo.idMod] = response.data;
-                } catch (error) {
-                    console.error(`Error al obtener guías del módulo ${modulo.idMod}`, error);
-                }
+               
             }
             setGuias(nuevasGuias);
         };
-
+    
         if (modulos.length > 0) {
             fetchGuiasDeTodos();
         }
     }, [modulos]);
+    
 
     // Cuando las guías estén listas, buscar y seleccionar la guía si se accedió desde la búsqueda
     useEffect(() => {
