@@ -21,7 +21,7 @@ function AppRoutes() {
       <Route path="/sectionform" element={<SectionForm />} />
       <Route path="/listguide" element={<ListGuide />} />
       <Route path="/systemcard/:id" element={<SystemCard />} />
-      <Route path="/sistemas/:id/:idModulo?/:idGuia?" element={<SystemInfo />} />
+      <Route path="/sistemas/:id/:idModulo/:idGuia" element={<SystemInfo />} />
       {/* Ruta más específica primero */}
       <Route path="/sistemas/:id" element={<SystemInfo />} />  {/* Ruta más general después */}
 

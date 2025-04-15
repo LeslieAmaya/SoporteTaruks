@@ -32,18 +32,18 @@ const SystemInfo = () => {
         const fetchGuiasDeTodos = async () => {
             const nuevasGuias = {};
             for (const modulo of modulos) {
-                    const response = await axios.get(`http://localhost:5272/api/Guia/${modulo.idMod}`);
-                    nuevasGuias[modulo.idMod] = response.data;
-               
+                const response = await axios.get(`http://localhost:5272/api/Guia/${modulo.idMod}`);
+                nuevasGuias[modulo.idMod] = response.data;
+
             }
             setGuias(nuevasGuias);
         };
-    
+
         if (modulos.length > 0) {
             fetchGuiasDeTodos();
         }
     }, [modulos]);
-    
+
 
     // Cuando las guías estén listas, buscar y seleccionar la guía si se accedió desde la búsqueda
     useEffect(() => {
@@ -96,6 +96,14 @@ const SystemInfo = () => {
 
     return (
         <div>
+            <link
+                href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+                rel="stylesheet"
+            />
+            <link
+                href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+                rel="stylesheet"
+            />
             <div className="container-fluid bg-dark p-0">
                 <div className="row py-2 px-lg-5">
                     <div className="col-lg-6 text-center text-lg-left mb-2 mb-lg-0">
@@ -112,8 +120,8 @@ const SystemInfo = () => {
                 <nav className="navbar navbar-expand-lg bg-light navbar-light py-3 px-lg-5">
                     <h1 className="m-0 display-5 text-uppercase">
                         <img
-                            src="https://i.postimg.cc/N0G9CLzg/siadminn.png"
-                            style={{ width: "300px" }}
+                            src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png"
+                            style={{ width: "200px" }}
                             alt="Logo"
                         />
                     </h1>
