@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import "../App.css";
+import { useParams } from 'react-router-dom';
 
 const SiAdminWeb = () => {
   const [modulos, setModulos] = useState([]);
@@ -9,6 +10,7 @@ const SiAdminWeb = () => {
   const [guias, setGuias] = useState({}); // Estado para almacenar guías de cada módulo
   const [visibleModulos, setVisibleModulos] = useState({}); // Estado para controlar visibilidad de guías
   const [selectedGuia, setSelectedGuia] = useState(null); // Estado para la guía seleccionada
+  const { id } = useParams();
 
   useEffect(() => {
     fetchSistemas();
@@ -19,6 +21,34 @@ const SiAdminWeb = () => {
       fetchModulos();
     }
   }, [idSiAdminWeb]);
+
+  useEffect(() => {
+    if (id && modulos.length > 0) {
+      const buscarGuia = async () => {
+        for (const mod of modulos) {
+          if (!guias[mod.idMod]) {
+            const response = await axios.get(`http://localhost:5272/api/Guia/${mod.idMod}`);
+            const guiasDelModulo = response.data;
+            
+            // Si encuentras la guía por ID, actualizas el estado y terminas
+            const guiaEncontrada = guiasDelModulo.find((g) => String(g.idGuia) === String(id));
+            if (guiaEncontrada) {
+              setSelectedGuia(guiaEncontrada);
+              break;
+            }
+  
+            // También actualizas el estado general de guías (por si quieres usarlo después)
+            setGuias((prev) => ({
+              ...prev,
+              [mod.idMod]: guiasDelModulo,
+            }));
+          }
+        }
+      };
+  
+      buscarGuia();
+    }
+  }, [id, modulos]);
 
   const fetchSistemas = async () => {
     try {
@@ -68,7 +98,7 @@ const SiAdminWeb = () => {
       console.error("Error al obtener las guías", error);
     }
   };
-  
+
 
   const handleGuiaClick = (guia) => {
     setSelectedGuia(guia); // Al hacer clic en la guía, almacenamos los detalles de la guía seleccionada
@@ -160,14 +190,14 @@ const SiAdminWeb = () => {
         {/* Mostrar detalles de la guía seleccionada */}
         {selectedGuia && (
           <div className="guia-details ml-4 mt-4">
-          <h3><strong>{selectedGuia.titulo}</strong></h3>
-          <p><strong>Descripción:</strong> {selectedGuia.descripcion}</p>
-          <p><strong>Requerimientos:</strong> {selectedGuia.requerimientos}</p>
-          <div>
-            <strong>Procedimiento:</strong>
-            <div dangerouslySetInnerHTML={{ __html: selectedGuia.procedimiento }} />
+            <h3><strong>{selectedGuia.titulo}</strong></h3>
+            <p><strong>Descripción:</strong> {selectedGuia.descripcion}</p>
+            <p><strong>Requerimientos:</strong> {selectedGuia.requerimientos}</p>
+            <div>
+              <strong>Procedimiento:</strong>
+              <div dangerouslySetInnerHTML={{ __html: selectedGuia.procedimiento }} />
+            </div>
           </div>
-        </div>
         )}
       </div>
     </div>

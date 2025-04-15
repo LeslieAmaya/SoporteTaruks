@@ -54,7 +54,33 @@ const SectionForm = () => {
         }
     };
 
-    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+
+        // Si seleccionas una sección existente, borra la nueva
+        if (name === "seccion") {
+            setFormData(prev => ({
+                ...prev,
+                seccion: value,
+                nuevaSeccion: ""
+            }));
+        }
+        // Si escribes una nueva, borra la selección existente
+        else if (name === "nuevaSeccion") {
+            setFormData(prev => ({
+                ...prev,
+                nuevaSeccion: value,
+                seccion: ""
+            }));
+        }
+        else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
+    };
+
 
     const handleEdit = (seccion) => {
         setEditingId(seccion.idSe);
@@ -82,29 +108,74 @@ const SectionForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const { sistema, modulo, seccion, nombreSeccion, descripcionSeccion } = formData;
+    
+        if (!sistema || !modulo) {
+            setError("Por favor selecciona un sistema y un módulo.");
+            return;
+        }
+    
+        // Validación condicional:
+        if (!formData.seccion && formData.nuevaSeccion.trim() === "") {
+            alert("Debes seleccionar una sección existente o escribir una nueva.");
+            return;
+        }
+    
+        // Busca la sección seleccionada
+        const seccionSeleccionada = secciones.find(sec => sec.idSe === parseInt(formData.seccion));
+    
+        // Si no se ha seleccionado una sección existente ni se han completado los campos de nueva sección, muestra el error
+        if (!seccionSeleccionada && (!nombreSeccion || !descripcionSeccion)) {
+            setError("Debes seleccionar una sección existente o ingresar nombre y descripción para una nueva.");
+            return;
+        }
+    
+        // Aquí armamos los datos que vamos a enviar
+        const data = {
+            idSis: sistema,
+            idMod: modulo,
+            nombreSe: "", // Inicializado vacío
+            descripcionSe: "" // Inicializado vacío
+        };
+    
+        if (seccionSeleccionada) {
+            // Si se ha seleccionado una sección existente
+            data.nombreSe = seccionSeleccionada.nombreSe;
+            data.descripcionSe = seccionSeleccionada.descripcionSe;
+        } else {
+            // Si se está creando una nueva sección
+            data.nombreSe = nombreSeccion;
+            data.descripcionSe = descripcionSeccion;
+        }
+    
         try {
-            const { sistema, modulo, seccionExistente, nombreSeccion, descripcionSeccion } = formData;
-            const data = {
-                idSis: sistema,
-                idMod: modulo,
-                nombreSe: seccionExistente ? secciones.find(sec => sec.idSe === seccionExistente)?.nombreSe : nombreSeccion,
-                descripcionSe: seccionExistente ? secciones.find(sec => sec.idSe === seccionExistente)?.descripcionSe : descripcionSeccion,
-            };
-
             if (editingId) {
+                // Si estamos editando una sección existente
                 await axios.put(`http://localhost:5272/api/Seccion/${editingId}`, data);
             } else {
+                // Si estamos creando una nueva sección
                 await axios.post("http://localhost:5272/api/Seccion", data);
             }
-
-            setFormData({ sistema: "", modulo: "", seccionExistente: "", nombreSeccion: "", descripcionSeccion: "", seccion: "" });
+    
+            // Limpiar el formulario
+            setFormData({
+                sistema: "",
+                modulo: "",
+                seccion: "",
+                nombreSeccion: "",
+                descripcionSeccion: ""
+            });
             setEditingId(null);
-            fetchSecciones();
+            setError("");
+            fetchSecciones(); // Volver a cargar las secciones
         } catch (error) {
             console.error("Error al registrar la sección", error);
             setError("Hubo un error al registrar la sección. Intenta nuevamente.");
         }
     };
+    
+
+
 
 
     return (
@@ -164,7 +235,7 @@ const SectionForm = () => {
 
             <div className="page-container">
 
-            <h1>CRUD de Secciones</h1>
+                <h1>CRUD de Secciones</h1>
                 {error && <p style={{ color: "red" }}>{error}</p>} {/* Mostrar errores */}
 
                 <form onSubmit={handleSubmit}>
@@ -204,17 +275,20 @@ const SectionForm = () => {
                         <Grid item xs={12} md={6}>
                             <TextField
                                 select
-                                label="Sección"
+                                label="Sección existente (opcional)"
                                 name="seccion"
                                 fullWidth
                                 value={formData.seccion}
                                 onChange={handleChange}
                             >
-                                {secciones.filter(seccion => seccion.idMod === formData.modulo).map((seccion) => (
-                                    <MenuItem key={seccion.idSe} value={seccion.idSe}>
-                                        {seccion.nombreSe}
-                                    </MenuItem>
-                                ))}
+                                <MenuItem value="">-- Selecciona una sección existente --</MenuItem>
+                                {secciones
+                                    .filter(seccion => seccion.idMod === formData.modulo)
+                                    .map((seccion) => (
+                                        <MenuItem key={seccion.idSe} value={seccion.idSe}>
+                                            {seccion.nombreSe}
+                                        </MenuItem>
+                                    ))}
                             </TextField>
                         </Grid>
                         {!formData.seccionExistente && (
@@ -226,7 +300,6 @@ const SectionForm = () => {
                                         fullWidth
                                         value={formData.nombreSeccion}
                                         onChange={handleChange}
-                                        required
                                     />
                                 </Grid>
                                 <Grid item xs={12} md={6}>
@@ -236,7 +309,6 @@ const SectionForm = () => {
                                         fullWidth
                                         value={formData.descripcionSeccion}
                                         onChange={handleChange}
-                                        required
                                     />
                                 </Grid>
                             </>

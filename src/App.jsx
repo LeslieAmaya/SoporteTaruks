@@ -1,23 +1,24 @@
 import { useState, useEffect } from 'react'; // Importar useEffect
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 // Solución para "global is not defined"
 window.global = window;
 
 import './App.css';
 
 import axios from "axios";
+import SystemCard from './componentes/systemcard';
 
 function App() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [faqs, setFaqs] = useState([]);
   const [sistemas, setSistemas] = useState([]);
+  const navigate = useNavigate();
 
   const fetchSistemas = async () => {
     try {
-      const response = await axios.get("http://localhost:5272/api/Sistema"); // Verifica qué datos estás recibiendo
+      const response = await axios.get("http://localhost:5272/api/Sistema");
       setSistemas(response.data);
-
     } catch (error) {
       console.error("Error al obtener la lista de sistemas", error);
     }
@@ -29,8 +30,15 @@ function App() {
         setFaqs(response.data);
       })
       .catch(error => console.error("Error al cargar las FAQS", error));
+  }, [])
+  useEffect(() => {
+    fetchSistemas();
+  }, []);
+  useEffect(() => {
+
+
     if (query.trim() === "") {
-      setResults([]); // Si el input está vacío, limpia resultados
+      setResults([]);
       return;
     }
 
@@ -42,13 +50,21 @@ function App() {
     );
     setResults(filteredFaqs);
 
-    fetchSistemas();
-  }, [query, faqs]);
+
+  }, [query]);
+
 
   const handleSearch = (e) => {
-    e.preventDefault();  // PREVIENE que el formulario recargue la página
+    e.preventDefault();
   };
 
+  const handleGuiaClick = async (faq) => {
+    const sistemaRelacionado = sistemas.find(sis => sis.idSis === faq.idSis);
+    if (sistemaRelacionado) {
+      navigate(`/sistemas/${sistemaRelacionado.idSis}/${faq.idMod}/${faq.idGuia}`);
+
+    }
+  };
 
 
   return (
@@ -86,13 +102,11 @@ function App() {
         <div className="container-fluid p-0">
           <nav className="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-lg-5">
             <Link to="/" className="navbar-brand ml-lg-3">
-              <h1 className="m-0 display-5 text-uppercase texttaruks">
-                <img
-                  src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png"
-                  className="iconT"
-                  alt="Logo Taruks"
-                />
-              </h1>
+              <img
+                src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png"
+                className="iconT"
+                alt="Logo Taruks"
+              />
             </Link>
             <button
               className="navbar-toggler"
@@ -159,17 +173,6 @@ function App() {
                   borderBottomRightRadius: "0"
                 }}
               />
-              <button
-                className="btn btn-danger"
-                type="submit"
-                style={{
-                  borderTopLeftRadius: "0",
-                  borderBottomLeftRadius: "0",
-                  color: "white",
-                }}
-              >
-                <i className="fas fa-arrow-right"></i>
-              </button>
             </form>
 
           </div>
@@ -180,71 +183,42 @@ function App() {
               <div className="row">
                 {results.map((faq, index) => {
                   const sistemaRelacionado = sistemas.find(sis => sis.idSis === faq.idSis);
-                  const systemPage = sistemaRelacionado ? sistemaRelacionado.nombreSis.toLowerCase(): '';
+                  if (!sistemaRelacionado) {
+                    return <div key={index}>Sistema no encontrado</div>;
+                  }
 
                   return (
                     <div key={index} className="col-md-6 mb-4">
                       <div className="card shadow-sm h-100">
                         <div className="card-body">
-                          {/* Redirige a la página correspondiente del sistema */}
-                          <Link to={`/${systemPage}`} className="card-title text-primary">
-                            {faq.titulo}
-                          </Link>
+                          <button
+                            className="btn btn-link text-decoration-none p-0"
+                            onClick={() => handleGuiaClick(faq)} // Pasar faq en lugar de guia
+                          >
+                            <span> {faq.titulo} </span>
+                          </button>
+
                           <h6 className="card-subtitle mb-2 text-muted">
-                            Sistema: {sistemaRelacionado?.nombreSis || 'No definido'}
+                            Sistema: {sistemaRelacionado.nombreSis}
                           </h6>
                         </div>
                       </div>
                     </div>
                   );
                 })}
-
               </div>
-
             </ul>
           ) : (
             query && <p>No se encontraron resultados para "{query}".</p>
           )}
         </div>
+
         {/* Servicios Taruks */}
         <div className="container my-5">
           <h2 className="text-center custom-margin text-black">Nuestros Servicios</h2>
           <div className="row text-center justify-content-center">
             <div className="row text-center justify-content-center">
-              <div className="col-4 col-md-2 text-dark d-flex flex-column align-items-center">
-                <Link to="/siadmin">
-                  <img
-                    src="https://i.postimg.cc/1tPzH6jf/siadmin.png"
-                    alt="SiAdmin"
-                    className="iconS"
-                  />
-                </Link>
-                {/* <p>SiAdmin</p> */}
-              </div>
-
-              <div className="col-4 col-md-2 text-dark d-flex flex-column align-items-center">
-                <Link to="/ekkipo">
-                  <img
-                    src="https://i.postimg.cc/rwwFZxcH/ekkipo.png"
-                    alt="Nómina Ekkipo"
-                    className="iconE"
-                    style={{ padding: 0, width: "180px" }}
-                  />
-                </Link>
-                {/* <p style={{ padding: 26 }}>Nómina Ekkipo</p> */}
-              </div>
-
-              <div className="col-4 col-md-2 text-dark d-flex flex-column align-items-center">
-                <Link to="/multiventas">
-                  <img
-                    src="https://i.postimg.cc/fyJBMwjN/Multi-Ventas.png"
-                    alt="Multiventas"
-                    className="iconM"
-                    style={{ padding: 0, width: "200px" }}
-                  />
-                </Link>
-                {/* <p>SiAdmin Web</p> */}
-              </div>
+              <SystemCard />
             </div>
           </div>
         </div>
