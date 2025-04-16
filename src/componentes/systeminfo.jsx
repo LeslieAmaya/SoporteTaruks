@@ -35,9 +35,9 @@ const SystemInfo = () => {
                 const response = await axios.get(`http://localhost:5272/api/Guia/${modulo.idMod}`);
                 nuevasGuias[modulo.idMod] = response.data;
 
-            }
+            }    
             setGuias(nuevasGuias);
-        };
+        };    
 
         if (modulos.length > 0) {
             fetchGuiasDeTodos();

@@ -111,7 +111,7 @@ function App() {
             <button
               className="navbar-toggler"
               type="button"
-              data-toggle="collapse"
+              data-toggle="collapse" 
               data-target="#navbarCollapse"
               aria-controls="navbarCollapse"
               aria-expanded="false"

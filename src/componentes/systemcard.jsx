@@ -19,7 +19,7 @@ const SystemCard = () => {
         } catch (error) {
             console.error("Error al obtener la lista de sistemas", error);
         }
-    };
+    };  
 
     const redirigir = (id) => {
         navigate(`/sistemas/${id}`);
