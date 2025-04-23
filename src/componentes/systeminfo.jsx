@@ -35,9 +35,9 @@ const SystemInfo = () => {
                 const response = await axios.get(`http://localhost:5272/api/Guia/${modulo.idMod}`);
                 nuevasGuias[modulo.idMod] = response.data;
 
-            }    
+            }
             setGuias(nuevasGuias);
-        };    
+        };
 
         if (modulos.length > 0) {
             fetchGuiasDeTodos();
@@ -104,30 +104,33 @@ const SystemInfo = () => {
                 href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
                 rel="stylesheet"
             />
-            <div className="container-fluid bg-dark p-0">
-                <div className="row py-2 px-lg-5">
-                    <div className="col-lg-6 text-center text-lg-left mb-2 mb-lg-0">
-                        <div className="d-inline-flex align-items-center text-white">
-                            <small><i className="fa fa-phone-alt mr-2"></i>+52 6442360132</small>
-                            <small className="px-3">|</small>
-                            <small><i className="fa fa-envelope mr-2"></i>contacto@taruks.com</small>
+            <div className="sticky-header">
+                <div className="container-fluid header p-0">
+                    <div className="row py-2 px-lg-5">
+                        <div className="col-lg-6 text-center text-lg-left mb-2 mb-lg-0">
+                            <div className="d-inline-flex align-items-center text-white">
+                                <small><i className="fa fa-phone-alt mr-2"></i>+52 6442360132</small>
+                                <small className="px-3">|</small>
+                                <small><i className="fa fa-envelope mr-2"></i>contacto@taruks.com</small>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <div className="container-fluid p-0">
+                    <nav className="navbar navbar-expand-lg bg-light navbar-light py-3 px-lg-5">
+                        <h1 className="m-0 display-5 text-uppercase">
+                            <img
+                                src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png"
+                                style={{ width: "200px" }}
+                                alt="Logo"
+                            />
+                        </h1>
+                        <Link to="/" className="nav-item ml-auto login-link-pages">Volver</Link>
+                    </nav>
+                </div>
             </div>
 
-            <div className="container-fluid p-0">
-                <nav className="navbar navbar-expand-lg bg-light navbar-light py-3 px-lg-5">
-                    <h1 className="m-0 display-5 text-uppercase">
-                        <img
-                            src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png"
-                            style={{ width: "200px" }}
-                            alt="Logo"
-                        />
-                    </h1>
-                    <Link to="/" className="nav-item ml-auto login-link-pages">Volver</Link>
-                </nav>
-            </div>
             <div className="d-flex">
                 {/* Sidebar de módulos y guías */}
                 <div className="sidebar">

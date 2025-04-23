@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { TextField, Button, Grid, MenuItem } from "@mui/material";
+import { TextField, Button, Grid, MenuItem, Modal, Box, Typography, Snackbar } from "@mui/material";
 import { Link } from "react-router-dom";
 import "../App.css";
 
@@ -8,15 +8,15 @@ const SectionForm = () => {
     const [secciones, setSecciones] = useState([]);
     const [sistemas, setSistemas] = useState([]);
     const [modulos, setModulos] = useState([]);
-    const [filteredSecciones, setFilteredSecciones] = useState([]);
-    const [filteredModulos, setFilteredModulos] = useState([]);
+    const [deleteId, setDeleteId] = useState(null);
+    const [openModal, setOpenModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
     const [formData, setFormData] = useState({
-        sistema: "",           // Inicializa con un string vacío
-        modulo: "",            // Inicializa con un string vacío
-        seccionExistente: "",
+        sistema: "",
+        modulo: "",
+        seccion: "",
         nombreSeccion: "",
-        descripcionSeccion: "",
-        seccion: ""            // Asegúrate de que seccion tenga un valor
+        descripcionSeccion: ""
     });
     const [editingId, setEditingId] = useState(null);
     const [error, setError] = useState("");
@@ -57,48 +57,41 @@ const SectionForm = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        // Si seleccionas una sección existente, borra la nueva
         if (name === "seccion") {
             setFormData(prev => ({
                 ...prev,
                 seccion: value,
-                nuevaSeccion: ""
+                nombreSeccion: "",
+                descripcionSeccion: ""
             }));
-        }
-        // Si escribes una nueva, borra la selección existente
-        else if (name === "nuevaSeccion") {
+        } else {
             setFormData(prev => ({
                 ...prev,
-                nuevaSeccion: value,
-                seccion: ""
-            }));
-        }
-        else {
-            setFormData(prev => ({
-                ...prev,
-                [name]: value
+                [name]: value,
+                seccion: name === "nombreSeccion" || name === "descripcionSeccion" ? "" : prev.seccion
             }));
         }
     };
-
 
     const handleEdit = (seccion) => {
         setEditingId(seccion.idSe);
         setFormData({
             sistema: seccion.idSis,
             modulo: seccion.idMod,
-            seccionExistente: "",
+            seccion: "",
             nombreSeccion: seccion.nombreSe,
-            descripcionSeccion: seccion.descripcionSe,
-            seccion: ""    // Resetear el valor de seccion
+            descripcionSeccion: seccion.descripcionSe
         });
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async () => {
         try {
-            if (window.confirm("¿Estás seguro de que deseas eliminar esta sección?")) {
-                await axios.delete(`http://localhost:5272/api/Seccion/${id}`);
-                fetchSecciones(); // Actualiza la lista después de eliminar
+            if (deleteId) {
+                await axios.delete(`http://localhost:5272/api/Seccion/${deleteId}`);
+                setDeleteId(null);  // Limpiar el ID después de la eliminación
+                fetchSecciones();  // Refrescar la lista de secciones
+                setOpenModal(false);  // Cerrar el modal de confirmación
+                setSuccessMessage("Módulo eliminado con éxito.");
             }
         } catch (error) {
             console.error("Error al eliminar la sección", error);
@@ -106,58 +99,46 @@ const SectionForm = () => {
         }
     };
 
+    const handleOpenModal = (id) => {
+        setDeleteId(id);  // Guardar el ID de la sección a eliminar
+        setOpenModal(true);  // Abrir el modal
+    };
+
+    const handleCloseModal = () => {
+        setOpenModal(false);  // Cerrar el modal sin hacer nada
+        setDeleteId(null);  // Limpiar el ID
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         const { sistema, modulo, seccion, nombreSeccion, descripcionSeccion } = formData;
-    
+
         if (!sistema || !modulo) {
             setError("Por favor selecciona un sistema y un módulo.");
             return;
         }
-    
-        // Validación condicional:
-        if (!formData.seccion && formData.nuevaSeccion.trim() === "") {
-            alert("Debes seleccionar una sección existente o escribir una nueva.");
+
+        if (!seccion && (nombreSeccion.trim() === "" || descripcionSeccion.trim() === "")) {
+            setError("Debes seleccionar una sección existente o llenar los campos para una nueva.");
             return;
         }
-    
-        // Busca la sección seleccionada
-        const seccionSeleccionada = secciones.find(sec => sec.idSe === parseInt(formData.seccion));
-    
-        // Si no se ha seleccionado una sección existente ni se han completado los campos de nueva sección, muestra el error
-        if (!seccionSeleccionada && (!nombreSeccion || !descripcionSeccion)) {
-            setError("Debes seleccionar una sección existente o ingresar nombre y descripción para una nueva.");
-            return;
-        }
-    
-        // Aquí armamos los datos que vamos a enviar
+
+        const seccionSeleccionada = secciones.find(sec => sec.idSe === parseInt(seccion));
+
         const data = {
             idSis: sistema,
             idMod: modulo,
-            nombreSe: "", // Inicializado vacío
-            descripcionSe: "" // Inicializado vacío
+            nombreSe: seccionSeleccionada ? seccionSeleccionada.nombreSe : nombreSeccion,
+            descripcionSe: seccionSeleccionada ? seccionSeleccionada.descripcionSe : descripcionSeccion
         };
-    
-        if (seccionSeleccionada) {
-            // Si se ha seleccionado una sección existente
-            data.nombreSe = seccionSeleccionada.nombreSe;
-            data.descripcionSe = seccionSeleccionada.descripcionSe;
-        } else {
-            // Si se está creando una nueva sección
-            data.nombreSe = nombreSeccion;
-            data.descripcionSe = descripcionSeccion;
-        }
-    
+
         try {
             if (editingId) {
-                // Si estamos editando una sección existente
                 await axios.put(`http://localhost:5272/api/Seccion/${editingId}`, data);
             } else {
-                // Si estamos creando una nueva sección
                 await axios.post("http://localhost:5272/api/Seccion", data);
             }
-    
-            // Limpiar el formulario
+
             setFormData({
                 sistema: "",
                 modulo: "",
@@ -167,16 +148,13 @@ const SectionForm = () => {
             });
             setEditingId(null);
             setError("");
-            fetchSecciones(); // Volver a cargar las secciones
+            fetchSecciones();
+            setSuccessMessage("Sección registrada correctamente.");
         } catch (error) {
             console.error("Error al registrar la sección", error);
             setError("Hubo un error al registrar la sección. Intenta nuevamente.");
         }
     };
-    
-
-
-
 
     return (
         <div>
@@ -190,6 +168,7 @@ const SectionForm = () => {
             />
             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
             <div className="container-fluid bg-dark p-0">
                 <div className="row py-2 px-lg-5">
                     <div className="col-lg-6 text-center text-lg-left mb-2 mb-lg-0">
@@ -208,11 +187,13 @@ const SectionForm = () => {
             <div className="container-fluid p-0">
                 <nav className="navbar navbar-expand-lg bg-light navbar-light py-3 px-lg-5">
                     <h1 className="m-0 display-5 text-uppercase">
-                        <img
-                            src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png"
-                            className="icon"
-                            alt="Logo"
-                        />
+                        <Link to="/">
+                            <img
+                                src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png"
+                                className="icon"
+                                alt="Logo"
+                            />
+                        </Link>
                     </h1>
                     <Link to="/sistemform" className="nav-item ms-2 login-link-pages">
                         Sistemas
@@ -232,11 +213,10 @@ const SectionForm = () => {
                     </Link>
                 </nav>
             </div>
-
             <div className="page-container">
-
-                <h1>CRUD de Secciones</h1>
-                {error && <p style={{ color: "red" }}>{error}</p>} {/* Mostrar errores */}
+                <h1>Secciones</h1>
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                {successMessage && <p style={{ color: "green" }}>{successMessage}</p>}
 
                 <form onSubmit={handleSubmit}>
                     <Grid container spacing={3}>
@@ -265,7 +245,7 @@ const SectionForm = () => {
                                 value={formData.modulo}
                                 onChange={handleChange}
                             >
-                                {modulos.filter(modulo => modulo.idSis === formData.sistema).map((modulo) => (
+                                {modulos.filter(mod => mod.idSis === formData.sistema).map((modulo) => (
                                     <MenuItem key={modulo.idMod} value={modulo.idMod}>
                                         {modulo.nombreM}
                                     </MenuItem>
@@ -281,7 +261,7 @@ const SectionForm = () => {
                                 value={formData.seccion}
                                 onChange={handleChange}
                             >
-                                <MenuItem value="">-- Selecciona una sección existente --</MenuItem>
+                                <MenuItem value="">-- Ninguna --</MenuItem>
                                 {secciones
                                     .filter(seccion => seccion.idMod === formData.modulo)
                                     .map((seccion) => (
@@ -291,7 +271,8 @@ const SectionForm = () => {
                                     ))}
                             </TextField>
                         </Grid>
-                        {!formData.seccionExistente && (
+
+                        {!formData.seccion && (
                             <>
                                 <Grid item xs={12} md={6}>
                                     <TextField
@@ -318,6 +299,7 @@ const SectionForm = () => {
                         {editingId ? "Actualizar" : "Registrar"}
                     </Button>
                 </form>
+
                 <h2 className="text-center mt-4">Lista de Secciones</h2>
                 <div className="table-container">
                     <table className="table">
@@ -332,7 +314,7 @@ const SectionForm = () => {
                         </thead>
                         <tbody>
                             {secciones.map((seccion) => (
-                                <tr key={seccion.idSec}>
+                                <tr key={seccion.idSe}>
                                     <td>{sistemas.find(sis => sis.idSis === seccion.idSis)?.nombreSis || "Desconocido"}</td>
                                     <td>{modulos.find(mod => mod.idMod === seccion.idMod)?.nombreM || "Desconocido"}</td>
                                     <td>{seccion.nombreSe}</td>
@@ -342,15 +324,14 @@ const SectionForm = () => {
                                             variant="contained"
                                             color="warning"
                                             onClick={() => handleEdit(seccion)}
-                                            className="mr-2"
+                                            className="update mr-2"
                                         >
                                             Editar
                                         </Button>
-
                                         <Button
                                             variant="contained"
-                                            color="error"
-                                            onClick={() => handleDelete(seccion.idSe)}
+                                            className="delete"
+                                            onClick={() => handleOpenModal(seccion.idSe)}  // Aseguramos que el ID se pase correctamente
                                         >
                                             Eliminar
                                         </Button>
@@ -361,6 +342,51 @@ const SectionForm = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Modal de confirmación */}
+            <Modal open={openModal} onClose={handleCloseModal}>
+                <Box sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: 400,
+                    bgcolor: "background.paper",
+                    borderRadius: 2,
+                    boxShadow: 24,
+                    p: 4,
+                    textAlign: "center"
+                }}>
+                    <Typography variant="h6">
+                        ¿Estás seguro de eliminar esta sección?
+                    </Typography>
+                    <Typography sx={{ mt: 2 }}>
+                        Esta acción no se puede deshacer.
+                    </Typography>
+                    <Box sx={{ mt: 3 }}>
+                        <Button
+                            onClick={handleDelete}
+                            variant="contained"
+                            color="error"
+                            className="mr-2"
+                        >
+                            Eliminar
+                        </Button>
+                        <Button onClick={handleCloseModal} variant="contained" color="primary">
+                            Cancelar
+                        </Button>
+                    </Box>
+                </Box>
+            </Modal>
+
+            {/* Mensaje de éxito o error */}
+            <Snackbar
+                open={Boolean(successMessage || error)}
+                autoHideDuration={6000}
+                onClose={() => { setError(null); setSuccessMessage(''); }}
+                message={successMessage || error}
+                severity={successMessage ? "success" : "error"}
+            />
         </div>
     );
 };

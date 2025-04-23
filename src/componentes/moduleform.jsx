@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { TextField, MenuItem, Button } from "@mui/material";
+import { TextField, MenuItem, Button, Modal, Box, Typography, Snackbar } from "@mui/material";
 import '../App.css';
 
 const ModuleForm = () => {
     const [sistemas, setSistemas] = useState([]);
     const [modulos, setModulos] = useState([]);
+    const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState("");
     const [formData, setFormData] = useState({
         sistema: "",
         modulo: "",
@@ -14,6 +16,8 @@ const ModuleForm = () => {
         descripcionModulo: "",
     });
     const [editingId, setEditingId] = useState(null);
+    const [deleteId, setDeleteId] = useState(null);
+    const [openModal, setOpenModal] = useState(false);
 
     useEffect(() => {
         fetchSistemas();
@@ -64,8 +68,10 @@ const ModuleForm = () => {
             });
             setEditingId(null);
             fetchModulos();  // Refrescar la lista después de un submit
+            setSuccessMessage(editingId ? "Módulo actualizado con éxito." : "Módulo registrado con éxito.");
         } catch (error) {
             console.error("Error al registrar el módulo", error);
+            setError("Hubo un error al registrar el módulo. Intenta nuevamente.");
         }
     };
 
@@ -78,29 +84,37 @@ const ModuleForm = () => {
         });
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async () => {
+        setLoading(true);
         try {
-            // Confirmar la eliminación
-            const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar este módulo?");
-            if (!confirmDelete) return;
 
             // Intentar eliminar el módulo
-            await axios.delete(`http://localhost:5272/api/Modulo/${id}`);
-
-            // Refrescar la lista después de eliminar
+            await axios.delete(`http://localhost:5272/api/Modulo/${deleteId}`);
+            setOpenModal(false);
+            setDeleteId(null);
             fetchModulos();
-
-            alert("Módulo eliminado correctamente.");
+            setSuccessMessage("Módulo eliminado con éxito.");
         } catch (error) {
             console.error("Error al eliminar el módulo", error);
-            alert("Hubo un error al eliminar el módulo. Intenta nuevamente.");
+            setError("Hubo un error al eliminar el módulo. Intenta nuevamente.");
+        } finally {
+            setLoading(false);
         }
     };
 
+    const handleOpenModal = (id) => {
+        setDeleteId(id);
+        setOpenModal(true);
+    };
 
+    const handleCloseModal = () => {
+        setOpenModal(false);
+        setDeleteId(null);
+    };
 
     return (
         <div>
+            {/* BOOTSTRAP */}
             <link
                 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
                 rel="stylesheet"
@@ -111,6 +125,7 @@ const ModuleForm = () => {
             />
             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
             <div className="container-fluid bg-dark p-0">
                 <div className="row py-2 px-lg-5">
                     <div className="col-lg-6 text-center text-lg-left mb-2 mb-lg-0">
@@ -133,31 +148,21 @@ const ModuleForm = () => {
                             <img
                                 src="https://i.postimg.cc/WzVV6nDy/logo-taruks.png"
                                 className="icon"
-
                                 alt="Logo"
                             />
                         </Link>
                     </h1>
-                    <Link to="/sistemform" className="nav-item ms-2 login-link-pages">
-                        Sistemas
-                    </Link>
-                    <Link to="/moduleform" className="nav-item ms-2 login-link-pages">
-                        Modulos
-                    </Link>
-                    <Link to="/sectionform" className="nav-item ms-2 login-link-pages">
-                        Secciones
-                    </Link>
-                    <Link to="/administrador" className="nav-item ms-2 login-link-pages">
-                        Guías
-                    </Link>
+                    <Link to="/sistemform" className="nav-item ms-2 login-link-pages">Sistemas</Link>
+                    <Link to="/moduleform" className="nav-item ms-2 login-link-pages">Módulos</Link>
+                    <Link to="/sectionform" className="nav-item ms-2 login-link-pages">Secciones</Link>
+                    <Link to="/administrador" className="nav-item ms-2 login-link-pages">Guías</Link>
                     <Link to="/listguide" className="nav-item ms-2 login-link-pages">Lista de Guías</Link>
-                    <Link to="/" className="nav-item ml-auto login-link-pages">
-                        Volver
-                    </Link>
+                    <Link to="/" className="nav-item ml-auto login-link-pages">Volver</Link>
                 </nav>
             </div>
+
             <div className="page-container">
-                <h1>CRUD de Módulos</h1>
+                <h1>Módulos</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <TextField
@@ -223,14 +228,14 @@ const ModuleForm = () => {
                                             variant="contained"
                                             color="warning"
                                             onClick={() => handleEdit(modulo)}
-                                            className="me-2"
+                                            className="update mr-2"
                                         >
                                             Editar
                                         </Button>
                                         <Button
                                             variant="contained"
-                                            color="error"
-                                            onClick={() => handleDelete(modulo.idMod)}
+                                            className="delete"
+                                            onClick={() => handleOpenModal(modulo.idMod)}
                                         >
                                             Eliminar
                                         </Button>
@@ -242,6 +247,48 @@ const ModuleForm = () => {
                 </div>
             </div>
 
+            {/* Modal de confirmación */}
+            <Modal
+                open={openModal}
+                onClose={handleCloseModal}
+            >
+                <Box sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: 400,
+                    bgcolor: "background.paper",
+                    borderRadius: 2,
+                    boxShadow: 24,
+                    p: 4,
+                    textAlign: "center"
+                }}>
+                    <Typography variant="h6">
+                        ¿Estás seguro de eliminar este módulo?
+                    </Typography>
+                    <Typography sx={{ mt: 2 }}>
+                        Esta acción no se puede deshacer.
+                    </Typography>
+                    <Box sx={{ mt: 3, display: "flex", justifyContent: "space-around" }}>
+                        <Button variant="contained" color="error" onClick={handleDelete}>
+                            Eliminar
+                        </Button>
+                        <Button variant="outlined" onClick={handleCloseModal}>
+                            Cancelar
+                        </Button>
+                    </Box>
+                </Box>
+            </Modal>
+
+            {/* Mensaje de éxito o error */}
+            <Snackbar
+                open={Boolean(successMessage || error)}
+                autoHideDuration={6000}
+                onClose={() => { setError(null); setSuccessMessage(''); }}
+                message={successMessage || error}
+                severity={successMessage ? "success" : "error"}
+            />
         </div>
     );
 };

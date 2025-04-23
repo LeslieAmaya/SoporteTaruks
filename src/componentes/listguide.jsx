@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { RichUtils } from "draft-js";
 import { Link } from "react-router-dom";
 import { TextField, MenuItem, Button, Menu } from "@mui/material";
+import { Editor, EditorState, convertFromRaw, convertToRaw, ContentState, convertFromHTML } from "draft-js";
+import { stateToHTML } from "draft-js-export-html";
+
 
 const ListGuide = () => {
+
+    const [editorState, setEditorState] = useState(EditorState.createEmpty());
+
     const [guias, setGuias] = useState([]);
     const [sistemas, setSistemas] = useState([]);
     const [modulos, setModulos] = useState([]);
@@ -18,10 +25,13 @@ const ListGuide = () => {
         fetchSecciones();
     }, []);
 
+    const toggleInlineStyle = (style, e) => {
+        e.preventDefault();
+        setEditorState(RichUtils.toggleInlineStyle(editorState, style));
+    };
     const fetchGuias = async () => {
         try {
             const response = await axios.get("http://localhost:5272/api/Guia");
-            console.log("Datos de Guías:", response.data); // Verifica qué datos estás recibiendo
             setGuias(response.data);
 
         } catch (error) {
@@ -33,7 +43,6 @@ const ListGuide = () => {
     const fetchSistemas = async () => {
         try {
             const response = await axios.get("http://localhost:5272/api/Sistema");
-            console.log("Datos de Sistemas:", response.data); // Verifica qué datos estás recibiendo
             setSistemas(response.data);
 
         } catch (error) {
@@ -61,17 +70,29 @@ const ListGuide = () => {
     };
 
     const handleEdit = (guia) => {
-        console.log("Datos de la guía seleccionada:", guia); // Verifica que los datos sean correctos
+        const blocksFromHTML = convertFromHTML(guia.procedimiento || "");
+        const contentState = ContentState.createFromBlockArray(
+            blocksFromHTML.contentBlocks,
+            blocksFromHTML.entityMap
+        );
+        setEditorState(EditorState.createWithContent(contentState));
         setEditMode(guia.idGuia);
         setEditData({ ...guia });
     };
+
 
 
     const handleSave = async (id) => {
         console.log("Datos que se enviarán en el PUT:", editData); // Verifica aquí antes de la petición
 
         try {
-            await axios.put(`http://localhost:5272/api/Guia/${id}`, editData);
+            const html = stateToHTML(editorState.getCurrentContent());
+            const raw = JSON.stringify(convertToRaw(editorState.getCurrentContent()));
+
+            setEditData(prev => ({ ...prev, procedimiento: raw })); // Guardamos en JSON para editar
+            const finalData = { ...editData, procedimiento: html }; // Enviamos como HTML a la API
+
+            await axios.put(`http://localhost:5272/api/Guia/${id}`, finalData);
             setEditMode(null);
             fetchGuias(); // Recarga la lista después de actualizar
         } catch (error) {
@@ -254,18 +275,33 @@ const ListGuide = () => {
                                         guia.requerimientos
                                     )}
                                 </td>
-                                <td>
+                                <td style={{ minWidth: 300 }}>
                                     {editMode === guia.idGuia ? (
-                                        <TextField value={editData.procedimiento} onChange={(e) => handleChange(e, "procedimiento")} />
+                                        <>
+                                            <div className="controls mb-2">
+                                                <button className="mr-2 btn btn-light btn-sm" onClick={(e) => toggleInlineStyle('BOLD', e)}>B</button>
+                                                <button className="mr-2 btn btn-light btn-sm" onClick={(e) => toggleInlineStyle('ITALIC', e)}>I</button>
+                                                <button className="mr-2 btn btn-light btn-sm" onClick={(e) => toggleInlineStyle('UNDERLINE', e)}>U</button>
+                                            </div>
+                                            <div className="editor-wrapper border p-2" style={{ backgroundColor: 'white' }}>
+                                                <Editor
+                                                    editorState={editorState}
+                                                    onChange={setEditorState}
+                                                    placeholder="Escribe el procedimiento aquí..."
+                                                />
+                                            </div>
+                                        </>
                                     ) : (
                                         <div dangerouslySetInnerHTML={{ __html: guia.procedimiento }} />
                                     )}
                                 </td>
 
+
+
                                 <td>
                                     {editMode === guia.idGuia ? (
                                         <Button variant="contained"
-                                            color="primary"
+                                            className="enviar"
                                             onClick={() => handleSave(guia.idGuia)}>
                                             Guardar
                                         </Button>
@@ -273,7 +309,7 @@ const ListGuide = () => {
                                         <>
                                             <Button
                                                 variant="contained"
-                                                color="warning"
+                                                className="update"
                                                 onClick={() => handleEdit(guia)}
                                                 style={{ marginRight: '10px' }} // Agregar margen a la derecha
                                             >
@@ -281,7 +317,7 @@ const ListGuide = () => {
                                             </Button>
                                             <Button
                                                 variant="contained"
-                                                color="secondary"
+                                                className="delete"
                                                 onClick={() => handleDelete(guia.idGuia)}
                                             >
                                                 Eliminar

@@ -1,24 +1,37 @@
 /* Estilos generales */
 body {
   font-family: 'Arial', sans-serif;
-  background-color: #f8f9fa;
+  background-color: #ffffff;
   margin: 0;
   padding: 0;
   height: 100%;
 }
-
-/* Contenedor principal de la página */
-.page-container {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  height: 100vh;
-  overflow-y: auto;
-  overflow-x: auto;
-  width: 100%;
+body {
+  background-color: white !important;
 }
+
+.content-area {
+  background-color: white !important;
+}
+html, body {
+  height: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+  background-color: white;
+}
+.sticky-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 2000;
+}
+
+
+
 
 /* Títulos */
 h1 {
@@ -41,20 +54,17 @@ form {
 
 /* Contenedor de la tabla */
 .table-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0;
+  padding: 40px 60px;
+  background-color: #fff;
 }
 
 /* Tabla */
 table {
+  width: 100%;
   border-collapse: collapse;
-  width: 80%;
-  margin: 20px;
-  max-height: 400px; /* Ajusta la altura máxima según sea necesario */
-  overflow-y:scroll;  /* Habilita el desplazamiento vertical */
-  display: block;    /* Para que funcione el desplazamiento */
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
 }
 
 /* Encabezados y celdas */
@@ -63,8 +73,26 @@ th, td {
   border: 1px solid #ddd;
   text-align: center;
 }
-thead {
-  background-color: #f2f2f2;
+.table td {
+  padding: 14px;
+  border-bottom: 1px solid #ddd;
+  vertical-align: top;
+  font-size: 14px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+}
+.table thead {
+  background-color: #004a99;
+  color: #ffffff;
+  text-align: center;
+}
+.table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+button.MuiButton-root {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
 }
 /* Encabezado de la tabla */
 th {
@@ -97,7 +125,7 @@ th {
 button {
   background: none;
   border: 1px solid #007BFF;
-  color: #007BFF;
+  color: #007bff;
   padding: 5px 10px;
   margin: 5px;
   font-size: 16px;
@@ -161,17 +189,56 @@ form button:hover {
 }
 
 /* Botones de acción */
-button[type="button"] {
+button[type="button"].update {
   margin: 5px 0;
   padding: 5px 10px;
-  background-color: #28a745;
+  background-color: #2e0053;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+button[type="button"].delete {
+  margin: 5px 0;
+  padding: 5px 10px;
+  background-color: #ff0303;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+button[type="button"].siguiente {
+  margin: 5px 0;
+  padding: 5px 10px;
+  background-color: #2e0053;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+button[type="button"].enviar {
+  margin: 5px 0;
+  padding: 5px 10px;
+  background-color: #0a5300;
+  color: white;
+  border: none;
+  cursor: pointer;
+}button[type="button"].atras {
+  margin: 5px 0;
+  padding: 5px 10px;
+  background-color: #a80404;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+button[type="button"].req {
+  margin: 5px 0;
+  padding: 5px 10px;
+  background-color: #2e0053;
   color: white;
   border: none;
   cursor: pointer;
 }
 
 button[type="button"]:hover {
-  background-color: #218838;
+  background-color: #2e0053;
 }
 
 /* Lista de imágenes */
@@ -187,19 +254,15 @@ ul {
 }
 
 .navbar .login-link {
-  color: #007bff;
+  color: #000000;
   font-weight: bold;
 }
 
 .navbar .login-link:hover {
-  color: #0056b3;
+  color: #ffffff;
   text-decoration: underline;
 }
 
-/* Encabezado */
-.texttaruks {
-  color: #007bff;
-}
 
 .icon {
   width: 50px;
@@ -213,15 +276,27 @@ ul {
   padding: 20px;
 }
 
-.sidebar {
-  width: 400px;
-  background-color: #343a40;
-  padding: 20px;
-  height: 100vh;
-  overflow-y: auto;
-  position: sticky;
-  top: 0;
+.header{
+  background-color: #12002e;
 }
+
+.sidebar {
+  width: 300px;
+  background-color: #12002e;
+  padding: 20px;
+  height: calc(100vh - 150px); /* espacio visible restante */
+  overflow-y: auto;
+  position: fixed;
+  top: 150px; /* espacio debajo del header */
+  left: 0;
+  z-index: 1000;
+}
+.content-area {
+  margin-left: 320px; /* espacio para que no se cruce con el sidebar */
+  padding-top: 160px; /* espacio para que no se esconda debajo del header */
+}
+
+
 .flex-grow-1 {
   max-height: 100vh;
   overflow-y: auto; /* Añade un scroll vertical solo en el contenido principal */
@@ -279,7 +354,7 @@ ul {
 
 
 .login-link:hover {
-  background-color: #75b84e; 
+  background-color: #50205c; 
   color: white; 
 }
 .iconT {
@@ -287,26 +362,7 @@ ul {
   height: auto; 
   margin-bottom: 8px;
 }
-.iconS {
-  width: 120px; 
-  height: auto; 
-  margin-bottom: 8px;
-  margin-top: 15%; 
-}
-.iconE {
-  width: 120px; 
-  height: auto; 
-  margin-bottom: 8px;
-  margin-top: 25%; 
-  
-}
-.iconM {
-  width: 120px; 
-  height: auto; 
-  margin-bottom: 8px;
-  margin-top: 15%; 
-  margin-left: 25%;
-}
+
 .custom-margin {
   margin-bottom: 30px; 
 }
@@ -327,14 +383,13 @@ ul {
   align-items: center;
   flex-direction: column;
 }
-.texttaruks {
-  color:#910606;
-}
 body, html {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
+  background-color: #f2f2f2; /* Fondo suave */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 .cuerpo {
   font-family: "Poppins", sans-serif;
@@ -804,39 +859,6 @@ mark,
   color: #6c757d;
 }
 
-code {
-  font-size: 87.5%;
-  color: #e83e8c;
-  word-wrap: break-word;
-}
-
-a > code {
-  color: inherit;
-}
-
-kbd {
-  padding: 0.2rem 0.4rem;
-  font-size: 87.5%;
-  color: #fff;
-}
-
-kbd kbd {
-  padding: 0;
-  font-size: 100%;
-  font-weight: 700;
-}
-
-pre {
-  display: block;
-  font-size: 87.5%;
-  color: #212529;
-}
-
-pre code {
-  font-size: inherit;
-  color: inherit;
-  word-break: normal;
-}
 
 .pre-scrollable {
   max-height: 340px;
@@ -2118,6 +2140,20 @@ pre code {
   border: 0;
 }
 
+/* Ocultar algunas columnas en pantallas pequeñas */
+@media (max-width: 768px) {
+  .procedimiento-column {
+      display: none;
+  }
+
+  .table th, .table td {
+      padding: 5px;
+  }
+
+  .table {
+      font-size: 12px;
+  }
+}
 .form-control {
   display: block;
   width: 100%;

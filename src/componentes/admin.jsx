@@ -244,7 +244,7 @@ const WizardForm = () => {
                                     }} />
                                 </Box>
                             ))}
-                            <Button onClick={() => setFormData({ ...formData, requerimientos: [...formData.requerimientos, ""] })}>
+                            <Button className="req" onClick={() => setFormData({ ...formData, requerimientos: [...formData.requerimientos, ""] })}>
                                 + Añadir Requerimiento
                             </Button>
                         </div>
@@ -286,11 +286,11 @@ const WizardForm = () => {
 
 
                     <Box mt={3}>
-                        {activeStep > 0 && <Button onClick={handleBack}>Atrás</Button>}
+                        {activeStep > 0 && <Button onClick={handleBack} className="atras">Atrás</Button>}
                         {activeStep < steps.length - 1 ? (
-                            <Button onClick={handleNext}>Siguiente</Button>
+                            <Button onClick={handleNext} className="siguiente ml-2">Siguiente</Button>
                         ) : (
-                            <Button onClick={handleSubmit}>Enviar</Button>
+                            <Button onClick={handleSubmit} className="enviar ml-2">Enviar</Button>
                         )}
                     </Box>
                 </form>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { TextField, Button, Grid } from "@mui/material";
+import { TextField, Button, Grid, Modal, Box, Typography, Snackbar } from "@mui/material";
 import "../App.css";
 
 const SistemForm = () => {
@@ -9,38 +9,46 @@ const SistemForm = () => {
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
     const [editingId, setEditingId] = useState(null);
-    const [error, setError] = useState("");  // Para mostrar errores
+    const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState("");
+
+    // Estado para el modal
+    const [deleteId, setDeleteId] = useState(null);
+    const [openModal, setOpenModal] = useState(false);
+    const [loading, setLoading] = useState(false); // Nuevo estado para el loading
 
     const fetchSistemas = async () => {
+        setLoading(true); // Activar loading
         try {
             const response = await axios.get("http://localhost:5272/api/Sistema");
-            console.log("Respuesta de la API:", response.data);  // Muestra los datos en consola
             setSistemas(response.data);
         } catch (error) {
             console.error("Error al obtener los sistemas:", error);
+        } finally {
+            setLoading(false); // Desactivar loading
         }
     };
 
-
-
-    // Llamar la función en el useEffect
     useEffect(() => {
         fetchSistemas();
     }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true); // Activar loading
         try {
             if (editingId) {
                 await axios.put(`http://localhost:5272/api/Sistema/${editingId}`, {
                     NombreSis: nombre,
                     DescripcionSis: descripcion,
                 });
+                setSuccessMessage("Sistema actualizado con éxito.");
             } else {
                 await axios.post("http://localhost:5272/api/Sistema", {
                     NombreSis: nombre,
                     DescripcionSis: descripcion,
                 });
+                setSuccessMessage("Sistema registrado con éxito.");
             }
             setNombre("");
             setDescripcion("");
@@ -49,6 +57,8 @@ const SistemForm = () => {
         } catch (error) {
             console.error("Error al registrar el sistema", error);
             setError("Hubo un error al registrar el sistema. Intenta nuevamente.");
+        } finally {
+            setLoading(false); // Desactivar loading
         }
     };
 
@@ -58,19 +68,35 @@ const SistemForm = () => {
         setEditingId(sistema.idSis);
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async () => {
+        setLoading(true); // Activar loading
         try {
-            await axios.delete(`http://localhost:5272/api/Sistema/${id}`);
+            await axios.delete(`http://localhost:5272/api/Sistema/${deleteId}`);
+            setOpenModal(false);
+            setDeleteId(null);
             fetchSistemas();
+            setSuccessMessage("Sistema eliminado con éxito.");
         } catch (error) {
             console.error("Error al eliminar el sistema", error);
             setError("Hubo un error al eliminar el sistema. Intenta nuevamente.");
+        } finally {
+            setLoading(false); // Desactivar loading
         }
     };
 
+    const handleOpenModal = (id) => {
+        setDeleteId(id);
+        setOpenModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setOpenModal(false);
+        setDeleteId(null);
+    };
 
     return (
         <div>
+            {/* BOOTSTRAP */}
             <link
                 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
                 rel="stylesheet"
@@ -81,6 +107,7 @@ const SistemForm = () => {
             />
             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
             <div className="container-fluid bg-dark p-0">
                 <div className="row py-2 px-lg-5">
                     <div className="col-lg-6 text-center text-lg-left mb-2 mb-lg-0">
@@ -112,7 +139,7 @@ const SistemForm = () => {
                         Sistemas
                     </Link>
                     <Link to="/moduleform" className="nav-item ms-2 login-link-pages">
-                        Modulos
+                        Módulos
                     </Link>
                     <Link to="/sectionform" className="nav-item ms-2 login-link-pages">
                         Secciones
@@ -126,9 +153,9 @@ const SistemForm = () => {
                     </Link>
                 </nav>
             </div>
-
+            {/* Contenido de la página */}
             <div className="page-container">
-                <h1>CRUD de Sistemas</h1>
+                <h1>Sistemas</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <TextField
@@ -152,6 +179,7 @@ const SistemForm = () => {
                         variant="contained"
                         color="primary"
                         className="mt-3"
+                        disabled={loading} // Desactivar botón mientras se carga
                     >
                         {editingId ? "Actualizar" : "Registrar"}
                     </Button>
@@ -175,12 +203,18 @@ const SistemForm = () => {
                                     <td>
                                         <Button
                                             variant="contained"
-                                            color="warning"
                                             onClick={() => handleEdit(sistema)}
-                                            className="mr-2">
+                                            className="update mr-2"
+                                            disabled={loading} // Desactivar botón mientras se carga
+                                        >
                                             Editar
                                         </Button>
-                                        <Button variant="contained" color="error" onClick={() => handleDelete(sistema.idSis)}>
+                                        <Button
+                                            variant="contained"
+                                            className="delete"
+                                            onClick={() => handleOpenModal(sistema.idSis)}
+                                            disabled={loading} // Desactivar botón mientras se carga
+                                        >
                                             Eliminar
                                         </Button>
                                     </td>
@@ -189,8 +223,52 @@ const SistemForm = () => {
                         </tbody>
                     </table>
                 </div>
-
             </div>
+
+            {/* Modal de confirmación */}
+            <Modal
+                open={openModal}
+                onClose={handleCloseModal}
+                aria-labelledby="modal-title"
+                aria-describedby="modal-description"
+            >
+                <Box sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: 400,
+                    bgcolor: "background.paper",
+                    borderRadius: 2,
+                    boxShadow: 24,
+                    p: 4,
+                    textAlign: "center"
+                }}>
+                    <Typography id="modal-title" variant="h6" component="h2">
+                        ¿Estás seguro de eliminar este sistema?
+                    </Typography>
+                    <Typography id="modal-description" sx={{ mt: 2 }}>
+                        Esta acción no se puede deshacer.
+                    </Typography>
+                    <Box sx={{ mt: 3, display: "flex", justifyContent: "space-around" }}>
+                        <Button variant="contained" color="error" onClick={handleDelete}>
+                            Eliminar
+                        </Button>
+                        <Button variant="outlined" onClick={handleCloseModal}>
+                            Cancelar
+                        </Button>
+                    </Box>
+                </Box>
+            </Modal>
+
+            {/* Mensaje de éxito o error */}
+            <Snackbar
+                open={Boolean(successMessage || error)}
+                autoHideDuration={6000}
+                onClose={() => { setError(null); setSuccessMessage(''); }}
+                message={successMessage || error}
+                severity={successMessage ? "success" : "error"}
+            />
         </div>
     );
 };
